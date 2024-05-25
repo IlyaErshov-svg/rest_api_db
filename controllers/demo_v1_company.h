@@ -19,9 +19,13 @@ class company : public drogon::HttpController<company>
     // ADD_METHOD_TO(company::your_method_name, "/absolute/path/{1}/{2}/list", Get); // path is /absolute/path/{arg1}/{arg2}/list
     METHOD_ADD(company::get_list, "/list", Get);
     METHOD_ADD(company::hello, "/", Get);
+    METHOD_ADD(company::get_product, "/product/{name}", Get);
+    METHOD_ADD(company::post_delivery, "/delivery/init", Post);
     METHOD_LIST_END
     void get_list(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback);
     void hello(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback);
+    void get_product(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, std::string&& name);
+    void post_delivery(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback);
     // your declaration of processing function maybe like this:
     // void get(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, int p1, std::string p2);
     // void your_method_name(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, double p1, int p2) const;
