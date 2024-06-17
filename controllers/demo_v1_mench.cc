@@ -121,4 +121,63 @@ void mench::update_detail(const drogon::HttpRequestPtr &req, std::function<void(
     resp->setStatusCode(k200OK);
     callback(resp);
 }
+
+
+void mench::add_product(const drogon::HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) {
+    auto jsonBody = *req->getJsonObject();
+    Json::Value response;
+    response["message"] = "Success";
+    auto clientPtr = drogon::app().getDbClient();
+    //auto transPtr = clientPtr->newTransaction();
+    /*
+    clientPtr->execSqlAsync("BEGIN TRANSACTION;",
+                            [](){std::cout << "Start transaction" << std::endl;},
+                            [=](const drogon::orm::DrogonDbException &e) mutable {
+                                std::cerr << "error:" << e.base().what() << std::endl;
+                                response["message"] = "Some wrong";
+    });
+    */
+    clientPtr->execSqlAsync("INSERT INTO product(name, fk_type, produced)\n"
+                            "VALUES($1, (SELECT id from types where name = $2), FALSE);",
+                            [](){std::cerr << "Insert product" << std::endl;},
+                            [=](const drogon::orm::DrogonDbException &e) mutable {
+                                std::cerr << "error:" << e.base().what() << std::endl;
+                                response["message"] = "Some wrong";
+                            },
+                            jsonBody[0]["name"].asString(), jsonBody[0]["type"].asString());
+    unsigned int index_product;
+    clientPtr->execSqlAsync("select id from product where name = $1;",
+                            [&index_product](const drogon::orm::Result &result)mutable
+                            {std::cerr << "Get index" << std::endl;
+                                index_product = result[0]["id"].as<unsigned int>();},
+                            [=](const drogon::orm::DrogonDbException &e) mutable {
+                                std::cerr << "error:" << e.base().what() << std::endl;
+                                response["message"] = "Some wrong";
+                            },
+                            jsonBody[0]["name"].asString());
+    for(unsigned int i = 1; jsonBody.size(); ++i)
+    {
+        clientPtr->execSqlAsync("INSERT INTO specific(fk_product, fk_detail, amount)\n"
+                                "VALUES($1, (SELECT detail.id from detail join supplier on detail.fk_sup = supplier.id "
+                                "where detail.name = $2 and supplier.name = $3), $4);",
+                                [i](){std::cerr << "Insert detail: " << i << std::endl;},
+                                [=](const drogon::orm::DrogonDbException &e) mutable {
+                                    std::cerr << "error:" << e.base().what() << std::endl;
+                                    response["message"] = "Some wrong";
+                                },
+                                index_product, jsonBody[i]["detail_name"].asString(),
+                                jsonBody[i]["provider_name"].asString(), jsonBody[i]["amount"].asInt());
+    }
+    /*
+    clientPtr->execSqlAsync("COMMIT TRANSACTION;",
+                            [](){std::cout << "end transaction" << std::endl;},
+                            [=](const drogon::orm::DrogonDbException &e) mutable {
+                                std::cerr << "error:" << e.base().what() << std::endl;
+                                response["message"] = "Some wrong";
+                            });
+    */
+    auto resp = HttpResponse::newHttpJsonResponse(response);
+    resp->setStatusCode(k200OK);
+    callback(resp);
+}
 // Add definition of your processing function here

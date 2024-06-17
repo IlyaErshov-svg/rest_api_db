@@ -20,11 +20,13 @@ class mench : public drogon::HttpController<mench>
     METHOD_ADD(mench::update_product, "/product/update", Put);
     METHOD_ADD(mench::update_detail, "/detail/update", Put);
     METHOD_ADD(mench::get_detail, "/detail/{1}/{2}", Get);
+    METHOD_ADD(mench::add_product, "/product", Post);
     METHOD_LIST_END
     void get_product(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, std::string&& name);
     void update_product(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback);
     void get_detail(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, std::string&& name_detail, std::string&& name_provider);
     void update_detail(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback);
+    void add_product(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback);
     // your declaration of processing function maybe like this:
     // void get(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, int p1, std::string p2);
     // void your_method_name(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, double p1, int p2) const;
